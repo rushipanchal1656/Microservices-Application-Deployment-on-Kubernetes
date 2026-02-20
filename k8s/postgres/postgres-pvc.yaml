@@ -4,8 +4,9 @@ metadata:
   name: postgres-pvc
   namespace: microservices
 spec:
+  storageClassName: local-path   # ⭐ ADD THIS LINE
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: 2Gi

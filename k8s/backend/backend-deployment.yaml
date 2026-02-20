@@ -3,13 +3,24 @@ kind: Deployment
 metadata:
   name: backend
   namespace: microservices
+  labels:
+    app: backend
 spec:
   replicas: 2
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+
+  minReadySeconds: 10
+  progressDeadlineSeconds: 600
+
   selector:
     matchLabels:
       app: backend
-  strategy:
-    type: RollingUpdate
+
   template:
     metadata:
       labels:
@@ -19,14 +30,9 @@ spec:
         - name: backend
           image: rushipanchal/backend:v1
           imagePullPolicy: Always
+
           ports:
             - containerPort: 3000
-
-          envFrom:
-            - configMapRef:
-                name: backend-config
-            - secretRef:
-                name: postgres-secret
 
           resources:
             requests:
@@ -36,12 +42,20 @@ spec:
               cpu: "500m"
               memory: "512Mi"
 
+          envFrom:
+            - configMapRef:
+                name: backend-config
+            - secretRef:
+                name: postgres-secret
+
           livenessProbe:
             httpGet:
               path: /health
               port: 3000
             initialDelaySeconds: 20
             periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 3
 
           readinessProbe:
             httpGet:
@@ -49,3 +63,5 @@ spec:
               port: 3000
             initialDelaySeconds: 10
             periodSeconds: 5
+            timeoutSeconds: 1
+            failureThreshold: 3
